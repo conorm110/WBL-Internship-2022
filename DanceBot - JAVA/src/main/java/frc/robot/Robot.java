@@ -5,8 +5,25 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+//import edu.wpi.first.wpilibj.drive.DifferentialDrive.WheelSpeeds;
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+//import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
+
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+
+
+
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -19,54 +36,61 @@ public class Robot extends TimedRobot {
 
   private RobotContainer m_robotContainer;
 
-  /**
-   * This function is run when the robot is first started up and should be used for any
-   * initialization code.
-   */
-  @Override
-  public void robotInit() {
-    // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
-    // autonomous chooser on the dashboard.
-    m_robotContainer = new RobotContainer();
-  }
+  Timer timmy = new Timer();
+  Wheels wally = new Wheels("wally");
+  Auto archie = new Auto("archie");
 
-  /**
-   * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
-   * that you want ran during disabled, autonomous, teleoperated and test.
-   *
-   * <p>This runs after the mode specific periodic functions, but before LiveWindow and
-   * SmartDashboard integrated updating.
-   */
-  @Override
-  public void robotPeriodic() {
-    // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
-    // commands, running already-scheduled commands, removing finished or interrupted commands,
-    // and running subsystem periodic() methods.  This must be called from the robot's periodic
-    // block in order for anything in the Command-based framework to work.
-    CommandScheduler.getInstance().run();
-  }
+  public class Wheels{
+    private String name;
+    private CANSparkMax front_LeftMotor = new CANSparkMax(1, MotorType.kBrushless);
+    private CANSparkMax back_LeftMotor = new CANSparkMax(2, MotorType.kBrushless);
+    private CANSparkMax front_RightMotor = new CANSparkMax(3, MotorType.kBrushless);
+    private CANSparkMax back_RightMotor = new CANSparkMax(4, MotorType.kBrushless);
 
-  /** This function is called once each time the robot enters Disabled mode. */
-  @Override
-  public void disabledInit() {}
+    private MotorControllerGroup ralf = new MotorControllerGroup(front_RightMotor, back_RightMotor);
+    private MotorControllerGroup louie = new MotorControllerGroup(front_LeftMotor, back_LeftMotor);
 
-  @Override
-  public void disabledPeriodic() {}
-
-  /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
-  @Override
-  public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-
-    // schedule the autonomous command (example)
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
+    public Wheels(String name){
+      this.name = name;
     }
   }
 
-  /** This function is called periodically during autonomous. */
-  @Override
-  public void autonomousPeriodic() {}
+
+  public class Auto{
+
+    private int autonomous_counter = 0;
+    private String name;
+    private String[][] auto;
+    
+    public Auto(String name){
+      this.name = name;
+    }
+
+    public void start(){
+      timmy.reset();
+      timmy.start();
+    }
+
+    private void briefcase(String task){
+      System.out.println(task);
+      switch(task){
+        case "Moving forward":
+        System.out.println("Moving forward");
+        wally.auto(-3,0);
+        break;
+      }
+    }
+
+  }
+
+
+
+
+
+
+
+
+
 
   @Override
   public void teleopInit() {
@@ -82,6 +106,41 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {}
+
+
+  @Override
+  public void robotInit() {
+    // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
+    // autonomous chooser on the dashboard.
+    m_robotContainer = new RobotContainer();
+  }
+
+  @Override
+  public void robotPeriodic() {
+    CommandScheduler.getInstance().run();
+  }
+
+   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
+   @Override
+   public void autonomousInit() {
+     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+ 
+     // schedule the autonomous command (example)
+     if (m_autonomousCommand != null) {
+       m_autonomousCommand.schedule();
+     }
+   }
+ 
+   /** This function is called periodically during autonomous. */
+   @Override
+   public void autonomousPeriodic() {}
+
+  /** This function is called once each time the robot enters Disabled mode. */
+  @Override
+  public void disabledInit() {}
+
+  @Override
+  public void disabledPeriodic() {}
 
   @Override
   public void testInit() {
