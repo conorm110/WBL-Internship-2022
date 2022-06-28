@@ -36,8 +36,10 @@ public class Robot extends TimedRobot {
 
   private RobotContainer m_robotContainer;
 
+  private final XboxController joy0 = new XboxController(0);
+
   Timer timmy = new Timer();
-  Wheels wally = new Wheels("wally");
+  Wheels wally = new Wheels("wally", .7);
   Auto archie = new Auto("archie");
 
   public class Wheels{
@@ -50,9 +52,25 @@ public class Robot extends TimedRobot {
     private MotorControllerGroup ralf = new MotorControllerGroup(front_RightMotor, back_RightMotor);
     private MotorControllerGroup louie = new MotorControllerGroup(front_LeftMotor, back_LeftMotor);
 
-    public Wheels(String name){
+    private final DifferentialDrive drivechain = new DifferentialDrive(louie, ralf);
+    public double[] shush = {0.0, 0.0};
+
+    public Wheels(String name, double max_speed){
       this.name = name;
+      max_speed = max_speed;
+      ralf.setInverted(true);
     }
+
+    private void wheels(double speed, double turn){
+      drivechain.arcadeDrive(speed, -turn);
+    }
+
+    public void auto(double speed, double turn){
+      shush[0] = speed;
+      shush[1] = turn;
+      
+    }
+
   }
 
 
@@ -69,6 +87,7 @@ public class Robot extends TimedRobot {
     public void start(){
       timmy.reset();
       timmy.start();
+      briefcase(auto[0][0]);
     }
 
     private void briefcase(String task){
@@ -83,13 +102,7 @@ public class Robot extends TimedRobot {
 
   }
 
-
-
-
-
-
-
-
+  
 
 
   @Override
@@ -105,7 +118,16 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+
+    double joy_left = joy0.getRawAxis(0);
+    double joy_right = joy0.getRawAxis(1);
+    
+    wheels(joy_left, joy_right);
+
+
+
+  }
 
 
   @Override
