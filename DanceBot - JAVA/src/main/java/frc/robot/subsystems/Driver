@@ -1,0 +1,36 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
+package frc.robot.subsystems;
+
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+public class Driver extends SubsystemBase {
+  /** Creates a new ExampleSubsystem. */
+  public class Driver{
+    private String name;
+    private XboxController joy;
+    private final XboxController joy0 = new XboxController(0);  
+
+    String axis_list[] = {"l_stick_x", "l_stick_y", "l_trig", "r_trig", "r_stick_x", "r_stick_y"};
+
+    public Driver(String name){
+      this.name = name;
+    }
+
+    public double get_axis(int raw_axis){
+      return joy.getRawAxis(raw_axis);
+    }
+  }
+
+  @Override
+  public void periodic() {
+    // This method will be called once per scheduler run
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    // This method will be called once per scheduler run during simulation
+  }
+}

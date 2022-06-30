@@ -1,0 +1,68 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
+package frc.robot.subsystems;
+
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+public class Auto extends SubsystemBase {
+  /** Creates a new ExampleSubsystem. */
+  private String moving [][]={
+    {"Moving forward", "None", "0.1"},
+    {"Moving backwards", "None", "0.3"},
+    {"Moving Left", "None", "0.4"},
+    {"Moving Right", "None", "0.2"},
+  };
+
+  private int autonomous_counter = 0;
+  private String name;
+  private String[][] auto;
+  
+  public Auto(String name){
+    this.name = name;
+  }
+
+  public void start(){
+    timmy.reset();
+    timmy.start();
+    briefcase(auto[0][0]);
+  }
+
+  private void briefcase(String task){
+    System.out.println(task);
+    switch(task){
+    case "Moving forward":
+      System.out.println("Moving forward");
+      wally.auto(-3,0);
+      break;
+    case "Moving backwards":
+      System.out.println("Moving back");
+      wally.auto(-0.6, 0);
+      break;
+    case "Moving right":
+      System.out.println("Moving right");
+      wally.auto(0, .4);
+      break;
+    case "Moving left":
+      System.out.println("Moving left");
+      wally.auto(0, -.3);
+      break;
+    case "None":
+      System.out.print("Nothing");
+      break;
+    
+      
+    }
+  }
+
+  @Override
+  public void periodic() {
+    // This method will be called once per scheduler run
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    // This method will be called once per scheduler run during simulation
+  }
+}
