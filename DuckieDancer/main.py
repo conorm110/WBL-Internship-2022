@@ -12,7 +12,11 @@ mp_pose = mp.solutions.pose
 pose = mp_pose.Pose()
 
 def move_right_arm_duckie(angle):
+    ## TODO: move arm to (angle) position on a stepper motor
+    return
 
+def move_left_arm_duckie(angle):
+    ## TODO: move arm to (angle) position on a stepper motor
     return
 
 def move_head_duckie(rx, ry, rz):
@@ -44,28 +48,27 @@ if __name__ == "__main__":
         lm = keypoints.pose_landmarks
         lmPose = mp_pose.PoseLandmark
 
+        image = cv2.rectangle(image, (0,0), (w,h), (0,0,0), 600)
+
         
-        right_eye = (int(lm.landmark[lmPose.RIGHT_EYE].x*w)), (int(lm.landmark[lmPose.RIGHT_EYE].y*h))
-        left_eye =  (int(lm.landmark[lmPose.LEFT_EYE].x*w)), (int(lm.landmark[lmPose.LEFT_EYE].y*h))
-        mouth_mid = int(((int(lm.landmark[lmPose.MOUTH_RIGHT].x*w))+(int(lm.landmark[lmPose.MOUTH_LEFT].x*w)))/2), int(((int(lm.landmark[lmPose.MOUTH_RIGHT].y*h))+(int(lm.landmark[lmPose.MOUTH_LEFT].y*h)))/2)
-        right_ear = (int(lm.landmark[lmPose.RIGHT_EAR].x*w)), (int(lm.landmark[lmPose.RIGHT_EAR].y*h))
-        left_ear = (int(lm.landmark[lmPose.LEFT_EAR].x*w)), (int(lm.landmark[lmPose.LEFT_EAR].y*h))
-
-
-        image = cv2.line(image, right_eye, left_eye, (255, 0, 0), 2)
-        image = cv2.line(image, left_eye, mouth_mid, (255, 0, 0), 2)
-        image = cv2.line(image, mouth_mid, right_eye, (255, 0, 0), 2)
-
-        image = cv2.line(image, right_ear, left_ear, (0, 255, 0), 2)
-        image = cv2.line(image, left_ear, mouth_mid, (0, 255, 0), 2)
-        image = cv2.line(image, mouth_mid, right_ear, (0, 255, 0), 2)
-
-        image = cv2.line(image, left_eye, left_ear, (0, 0, 255), 2)
-        image = cv2.line(image, left_eye, right_ear, (0, 0, 255), 2)
-        image = cv2.line(image, right_eye, left_ear, (0, 0, 255), 2)
-        image = cv2.line(image, right_eye, right_ear, (0, 0, 255), 2)
-
         try:
+            right_eye = (int(lm.landmark[lmPose.RIGHT_EYE].x*w)), (int(lm.landmark[lmPose.RIGHT_EYE].y*h))
+            left_eye =  (int(lm.landmark[lmPose.LEFT_EYE].x*w)), (int(lm.landmark[lmPose.LEFT_EYE].y*h))
+            mouth_mid = int(((int(lm.landmark[lmPose.MOUTH_RIGHT].x*w))+(int(lm.landmark[lmPose.MOUTH_LEFT].x*w)))/2), int(((int(lm.landmark[lmPose.MOUTH_RIGHT].y*h))+(int(lm.landmark[lmPose.MOUTH_LEFT].y*h)))/2)
+            mouth_x = int(((int(lm.landmark[lmPose.MOUTH_RIGHT].x*w))+(int(lm.landmark[lmPose.MOUTH_LEFT].x*w)))/2)
+            right_ear = (int(lm.landmark[lmPose.RIGHT_EAR].x*w)), (int(lm.landmark[lmPose.RIGHT_EAR].y*h))
+            left_ear = (int(lm.landmark[lmPose.LEFT_EAR].x*w)), (int(lm.landmark[lmPose.LEFT_EAR].y*h))
+
+            image = cv2.line(image, right_eye, left_eye, (255, 0, 0), 2)
+            image = cv2.line(image, left_eye, mouth_mid, (255, 0, 0), 2)
+            image = cv2.line(image, mouth_mid, right_eye, (255, 0, 0), 2)
+            image = cv2.line(image, right_ear, left_ear, (0, 255, 0), 2)
+            image = cv2.line(image, left_ear, mouth_mid, (0, 255, 0), 2)
+            image = cv2.line(image, mouth_mid, right_ear, (0, 255, 0), 2)
+            image = cv2.line(image, left_eye, left_ear, (0, 0, 255), 2)
+            image = cv2.line(image, left_eye, right_ear, (0, 0, 255), 2)
+            image = cv2.line(image, right_eye, left_ear, (0, 0, 255), 2)
+            image = cv2.line(image, right_eye, right_ear, (0, 0, 255), 2)
             eye_level_y = ((int(lm.landmark[lmPose.RIGHT_EYE].y*h)) + (int(lm.landmark[lmPose.LEFT_EYE].y*h))) / 2
             ear_level_y = ((int(lm.landmark[lmPose.RIGHT_EAR].y*h)) + (int(lm.landmark[lmPose.LEFT_EAR].y*h))) / 2
             rotate_y = round(((eye_level_y - ear_level_y + rotate_z_calibrated) * -1), 3)
@@ -80,8 +83,6 @@ if __name__ == "__main__":
         except:
             print("WARNING: NO HEAD?")
         
-        ## print("RX,RY,RZ: " + str(rotate_x), str(rotate_y), str(rotate_z)) 
-
         try:
             right_wrist_x = (int(lm.landmark[lmPose.RIGHT_WRIST].x*w))
             right_wrist_y = (int(lm.landmark[lmPose.RIGHT_WRIST].y*h))
@@ -111,14 +112,19 @@ if __name__ == "__main__":
             
             if (dt_r_0 <= dt_r_0 and dt_r_0 <= dt_r_1 and dt_r_0 <= dt_r_2 and dt_r_0 <= dt_r_3 and dt_r_0 <= dt_r_4):
                 image = cv2.line(image, (right_0_x,right_0_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
+                move_right_arm_duckie(230)
             elif (dt_r_1 <= dt_r_0 and dt_r_1 <= dt_r_1 and dt_r_1 <= dt_r_2 and dt_r_1 <= dt_r_3 and dt_r_1 <= dt_r_4):
                 image = cv2.line(image, (right_1_x,right_1_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
+                move_right_arm_duckie(325)
             elif (dt_r_2 <= dt_r_0 and dt_r_2 <= dt_r_1 and dt_r_2 <= dt_r_2 and dt_r_2 <= dt_r_3 and dt_r_2 <= dt_r_4):
                 image = cv2.line(image, (right_2_x,right_2_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
+                move_right_arm_duckie(30)
             elif (dt_r_3 <= dt_r_0 and dt_r_3 <= dt_r_1 and dt_r_3 <= dt_r_2 and dt_r_3 <= dt_r_3 and dt_r_3 <= dt_r_4):
                 image = cv2.line(image, (right_3_x,right_3_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
+                move_right_arm_duckie(90)
             else:
                 image = cv2.line(image, (right_4_x,right_4_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
+                move_right_arm_duckie(170)
         except:
             print("WARNING: RIGHT ARM NOT VISIBLE")
         
@@ -151,18 +157,31 @@ if __name__ == "__main__":
             
             if (dt_l_0 <= dt_l_0 and dt_l_0 <= dt_l_1 and dt_l_0 <= dt_l_2 and dt_l_0 <= dt_l_3 and dt_l_0 <= dt_l_4):
                 image = cv2.line(image, (left_0_x,left_0_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
+                move_left_arm_duckie(230)
             elif (dt_l_1 <= dt_l_0 and dt_l_1 <= dt_l_1 and dt_l_1 <= dt_l_2 and dt_l_1 <= dt_l_3 and dt_l_1 <= dt_l_4):
                 image = cv2.line(image, (left_1_x,left_1_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
+                move_left_arm_duckie(325)
             elif (dt_l_2 <= dt_l_0 and dt_l_2 <= dt_l_1 and dt_l_2 <= dt_l_2 and dt_l_2 <= dt_l_3 and dt_l_2 <= dt_l_4):
                 image = cv2.line(image, (left_2_x,left_2_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
+                move_left_arm_duckie(30)
             elif (dt_l_3 <= dt_l_0 and dt_l_3 <= dt_l_1 and dt_l_3 <= dt_l_2 and dt_l_3 <= dt_l_3 and dt_l_3 <= dt_l_4):
                 image = cv2.line(image, (left_3_x,left_3_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
+                move_left_arm_duckie(90)
             else:
                 image = cv2.line(image, (left_4_x,left_4_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
+                move_left_arm_duckie(170)
         except:
             print("WARNING: LEFT ARM NOT VISIBLE")
 
         
+        ## Bthis some fruity ahh code sorry mb
+        try:
+            image = cv2.line(image, (right_shoulder_x,right_shoulder_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
+            spine_end_y = int((right_shoulder_y+left_shoulder_y)/2) + 100
+            spine_end_x = int((right_shoulder_x+left_shoulder_x)/2)
+            image = cv2.line(image, mouth_mid, (spine_end_x, spine_end_y), (255,0,0), 4) # doesnt work
+        except:
+            i=0 # :skull:
 
         # Display.
         cv2.imshow('DanceTracker', image)
