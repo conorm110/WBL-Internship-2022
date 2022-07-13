@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj.motorcontrol.Jaguar;
@@ -42,9 +43,11 @@ public class Robot extends TimedRobot {
     return count_airplane;
   }
 
+  Timer timmy = new Timer();
   Driver driver = new Driver("driver");
   DriveTrain wally = new DriveTrain("wally");
   LimeLight lucy = new LimeLight("lucy");
+  Auto archie = new Auto("archie");
 
   public class Driver{
     private String name;
@@ -83,6 +86,7 @@ public class Robot extends TimedRobot {
   private double max_turn = .7;
   // private String turn_axis = "l_stick_x";
   // private String speed_axis = "l_stick_y";
+  private double[] moves = {0.0, 0.0};
   
   private final DifferentialDrive drivechain = new DifferentialDrive(leftWheel, rightWheel);
  
@@ -120,6 +124,15 @@ public class Robot extends TimedRobot {
 
     drive(speed, turn);
   }
+
+  public void auto(double speed, double turn){
+    moves[0] = speed;
+    moves[1] = turn; 
+  }
+
+  public void driving(){
+    drive(moves[0], moves[1]);
+  }
   
   }
 
@@ -127,10 +140,10 @@ public class Robot extends TimedRobot {
   public class LimeLight{
     private String name;
     public NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
-    public NetworkTableEntry tv = table.getEntry("tv");
-    public NetworkTableEntry tx = table.getEntry("tx");
-    public NetworkTableEntry ty = table.getEntry("ty");
-    public NetworkTableEntry ta = table.getEntry("ta");
+    public NetworkTableEntry tv = table.getEntry("tv"); // Whether lucy has any valid targets(0 or 1)
+    public NetworkTableEntry tx = table.getEntry("tx"); // Horizontal Offset from Crosshair to Target(-xyz degrees to xyz degrees)
+    public NetworkTableEntry ty = table.getEntry("ty"); // Vertical Offset from Crosshair to Target(-xyz degrees to xyz degrees)
+    public NetworkTableEntry ta = table.getEntry("ta"); // Target Area (0% of image to 100% of image)
     public double le_angles[] = {0,0};
 
     public LimeLight(String name){
@@ -144,8 +157,8 @@ public class Robot extends TimedRobot {
     public void check(){
       sight();
       System.out.println("can you see" + le_angles[1]);
-      SmartDashboard.putNumber("lucy_cam0", le_angles[0]);
-      SmartDashboard.putNumber("lucy_cam1", le_angles[1]);
+      SmartDashboard.putNumber("X-angles", le_angles[0]);
+      SmartDashboard.putNumber("Y-angles", le_angles[1]);
       //SmartDashboard.putNumber("lucy_area", area);
     }
 
@@ -164,20 +177,94 @@ public class Robot extends TimedRobot {
         table.getEntry("ledMode").setNumber(1);
       }
     }
+    public void tracking(){
+
+    }
+
+
   }
 
-    
   
+  public class Auto{
+    private String dance[][]= {
+      {"Move forward", "None", "0.01"},
+      {"Move backward", "None", "0.01"}
+    };
 
+    private String name;
+    private double lil_sam = 0;
+    private String[][] spyroom;
+    private int autonomous_counter = 0;
 
+    public Auto(String name){
+      this.name = name;
+      this.spyroom = dance;
+    }
 
+    public void start(){
+      timmy.reset();
+      timmy.start();
+      briefcase(spyroom[0][0]);
+      lil_sam = lil_sam + Double.parseDouble(spyroom[0][1]);
+    }
 
+    public void check(){
+      if(timmy.get() > lil_sam){
+        briefcase(spyroom[autonomous_counter][1]);
+        autonomous_counter++;
+        briefcase(spyroom[autonomous_counter][0]);
+        lil_sam = lil_sam + Double.parseDouble(spyroom[autonomous_counter][2]);
+      }
+    }
 
+    private void briefcase(String task){
+      switch(task){
+        case "Move backward":
+          System.out.println("Moving back");
+          wally.auto(-.3, 0);
+          break;
+        case "Move forward":
+          System.out.println("Moving forward");
+          wally.auto(0.3, 0);
+          break;
+        case "None":
+          System.out.println("Nothing");
+          break;
+        case "Left":
+          System.out.println("Turing Left");
+          wally.auto(0, -.4);
+          break;
+        case "Right":
+          System.out.println("Turning Right");
+          wally.auto(0, .4);
+          break;
+        case "Right forward":
+          System.out.println("moving forward right");
+          wally.auto(.4, -.3);
+          break;
+        case "Left forward":
+          System.out.println("moving forward left");
+          wally.auto(.4, .3);
+          break;
+        case "Right backwards":
+          System.out.println("moving backwards right");
+          wally.auto(-.3, -3);
+          break;
+        case "Left backwards":
+          System.out.println("moving backwards left");
+          wally.auto(-.3, .3);
+          break;
+        case "Stop":
+          System.out.println("Stopping");
+          wally.auto(0, 0);
+          break;
+        default:
+          break;
+      }
+    }
 
-
-
-
-
+  }
+    
 
 
   @Override
