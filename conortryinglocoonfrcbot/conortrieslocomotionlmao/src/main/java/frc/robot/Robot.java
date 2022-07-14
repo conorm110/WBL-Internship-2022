@@ -61,6 +61,9 @@ public class Robot extends TimedRobot {
     Movement.moveArmRight(logitechController.getPOV());
     Movement.moveWheelLeft(logitechController.getRawAxis(1));
     Movement.moveWheelRight(logitechController.getRawAxis(5));
+
+    LucyLimeLight.check();
+    
   }
 
   @Override
