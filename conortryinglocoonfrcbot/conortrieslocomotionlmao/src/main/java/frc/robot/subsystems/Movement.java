@@ -9,10 +9,11 @@ import edu.wpi.first.wpilibj.motorcontrol.Jaguar;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Movement extends SubsystemBase {
-  static Jaguar leftJaguar = new Jaguar(0); // pwm channel 0, change later
-  static Jaguar rightJaguar = new Jaguar(1); // pwm channel 1, change later
+  public static Jaguar leftJaguar = new Jaguar(0); // pwm channel 0, change later
+  public static Jaguar rightJaguar = new Jaguar(1); // pwm channel 1, change later
   static Servo servo_a = new Servo(2);
   static Servo servo_b = new Servo(3);
+  static double[] go = {0.0, 0.0};
 
   public Movement() {
   }
@@ -43,6 +44,14 @@ public class Movement extends SubsystemBase {
     // per scheduler run
   }
 
-  public void stop() {
+  public static void stop() {
+    leftJaguar.stopMotor();
+    rightJaguar.stopMotor();
   }
+
+  public void auto(double speed, double turn){
+    go[0] = speed;
+    go[1] = turn;
+  }
+  
 }
