@@ -51,7 +51,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
-    AutoDance.cum();
+    AutoDance.AutoLoop();
   }
 
   @Override

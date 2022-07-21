@@ -24,18 +24,14 @@ public class AutoDance extends SubsystemBase {
 
   }
 
-  @Override
-  public void periodic() 
-  {  
-    
-  }
-
-  public static void cum()
+  public static void AutoLoop() 
   {
     Movement.leftJaguar.setVoltage(tesetingplsdelete/100);
     tesetingplsdelete--;
   }
 
+  @Override
+  public void periodic() {  }
   @Override
   public void simulationPeriodic() {  }
 }
