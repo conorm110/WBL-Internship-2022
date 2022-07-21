@@ -11,6 +11,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.LucyLimeLight; // keep included i dont want to add it back later lmao
 import frc.robot.subsystems.Movement;
+
+import org.w3c.dom.events.MouseEvent;
+
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -45,28 +48,8 @@ public class Robot extends TimedRobot {
   Limelight lucy = new Limelight("lucy");
   Autonomous archie = new Autonomous("archie");
   Wheels wally = new Wheels("wally");
-  Driver driver = new Driver("driver");
 
   // Make a func where wally ask what lucy angles are and then moves depending on that
-  public class Driver{
-    private String name;
-    private XboxController joy;
-    private String lock_on_button = "y";
-
-    public Driver(String name){
-      this.name = name;
-      joy = new XboxController(0);
-      System.out.println(name);
-    }
-
-    public boolean get_but(String Stur_but){
-      return joy.getRawButton(find_but(Stur_but));
-    }
-    public boolean lock_on(){
-      return get_but(lock_on_button);
-    }
-  }
-
   public class Limelight{
     private String name;
     public NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
@@ -110,10 +93,44 @@ public class Robot extends TimedRobot {
     //   {"Done", "this will never run", "999.9"},
     // };
 
-    private String track[][] = {
-      {"give angles", "None", "10.0"},
+    // private String track[][] = {
+    //   {"give angles", "None", "10.0"},
+    //   {"Done", "this will never run", "999.9"}
+    // };
+
+    private String dance_mode[][] = {
+      {"Moving Forward", "Stop Wheels", "0.5"},
+      {"Arms Up", "None", "0.3"},
+      {"Arms Center", "None", "0.2"},
+      {"Soft Right", "Stop Wheels", "1.0"},
+      {"Right Arm Up", "None", "0.5"},
+      {"Left Arm Up", "None", "0.5"},
+      {"Arms Center", "None", "0.3"},
+      {"Right Arm Up", "None", "0.5"},
+      {"Left Arm Up", "None", "0.5"},
+      {"Arms Center", "None", "0.3"},
+      {"Moving Left", "Stop Wheels", "0.5"},
+      {"Left Arm Up", "None", "0.5"},
+      {"Right Arm Up", "None", "0.5"},
+      {"Arms Center", "None", "0.3"},
+      {"Left Arm Up", "None", "0.5"},
+      {"Right Arm Up", "None", "0.5"},
+      {"Arms Center", "None", "0.3"},
+      {"Soft Right", "Stop Wheels", "0.5"},
+      {"Moving Backward", "Stop Wheels", "0.5"},
+      {"Arms Up", "None", "0.5"},
+      {"Arms Center", "None", "0.3"},
+      {"Right Arm Up", "None", "0.3"},
+      {"Soft Right", "Stop Wheels", "0.5"},
+      {"Arms Center", "None", "0.3"},
+      {"Left Arm Up", "None", "0.5"},
+      {"Soft Left", "Stop Wheels", "1.0"},
+      {"Arms Center", "None", "0.3"},
+      {"Soft Right", "Stop Wheels", "0.5"},
+      {"Moving Forward", "Stop Wheels", "0.4"},
+      {"Arms Up", "None", "0.3"},
       {"Done", "this will never run", "999.9"}
-    };
+    };  
 
   //  private String dance_mode[][] = {};
 
@@ -124,7 +141,7 @@ public class Robot extends TimedRobot {
 
     public Autonomous(String name){
       this.name = name;
-      this.spyroom = track;
+      this.spyroom = dance_mode;
     }
 
     public void talk(){
@@ -165,10 +182,43 @@ public class Robot extends TimedRobot {
         Movement.moveWheelRight(0.5);
         Movement.moveArmRight(90);
         break;
+        case "Soft Right":
+        System.out.println("Moving Righty Softly");
+        Movement.moveWheelRight(0.3);
+        break;
         case "Moving Left":
         System.out.println("Moving Left");
         Movement.moveWheelRight(0.5);
         Movement.moveArmLeft(90);
+        break;
+        case "Soft Left":
+        System.out.println("Moving Lefty Softly");
+        Movement.moveWheelLeft(0.3);
+        break;
+        case "Arms Up":
+        System.out.println("Moving Arms Up");
+        Movement.moveArmLeft(.9);
+        Movement.moveArmRight(.9);
+        break;
+        case "Arms Down":
+        System.out.println("Moving Arms Down");
+        Movement.moveArmLeft(-0.9);
+        Movement.moveArmRight(-0.9);
+        break;
+        case "Arms Center":
+        System.out.println("Arms Reset");
+        Movement.moveArmLeft(0);
+        Movement.moveArmRight(0);
+        break;
+        case "Right Arm Up":
+        System.out.println("Moving Right Arm Up");
+        Movement.moveArmRight(.9);
+        Movement.moveArmLeft(-0.2);
+        break;
+        case "Left Arm Up":
+        System.out.println("Moving Left Arm Up");
+        Movement.moveArmLeft(.9);
+        Movement.moveArmRight(-.2);
         break;
         case "None":
         System.out.println("Nothing");
@@ -307,9 +357,11 @@ public class Robot extends TimedRobot {
     double[] lucy_pos = lucy.angles();
     if (lucy_pos[0] == 0) {
       Movement.stop();
-    } else if (lucy_pos[0] < -12) {
+    } 
+    else if (lucy_pos[0] < -12) {
       Movement.leftJaguar.setVoltage(-3);
-    } else if (lucy_pos[0] > -12) {
+    } 
+    else if (lucy_pos[0] > -12) {
       Movement.rightJaguar.setVoltage(3);
     }
     SmartDashboard.putNumber("cum", lucy_pos[0]);
