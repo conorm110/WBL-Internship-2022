@@ -3,54 +3,68 @@ import time
 import math as m
 import mediapipe as mp
 import numpy as np
+import http.server
+import socketserver
+import threading
+from urllib.parse import urlparse
+from urllib.parse import parse_qs
 
 rotate_z_calibrated = 22
 rotate_x_calibrated = 0.1
 rotate_y_calibrated = 100
 
+head_x = 0
+head_y = 0
+head_z = 0 
+r_arm = 0
+l_arm = 0
+
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose()
 
-def move_right_arm_duckie(angle):
-    ## TODO: move arm to (angle) position on a stepper motor
-    return
+class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        query_components = parse_qs(urlparse(self.path).query)
+        html = f"<html><head></head><body>{head_x},{head_y},{head_z},{r_arm},{l_arm}</body></html>"
+        self.wfile.write(bytes(html, "utf8"))
+        return
 
-def move_left_arm_duckie(angle):
-    ## TODO: move arm to (angle) position on a stepper motor
-    return
+def server():
+    global head_x
+    global head_y
+    global head_z
+    global r_arm
+    global l_arm
+    handler_object = MyHttpRequestHandler
+    PORT = 8000
+    my_server = socketserver.TCPServer(("", PORT), handler_object)
+    my_server.serve_forever()
 
-def move_head_duckie(rx, ry, rz):
-    ## TODO: rotate prostetic head orsomething, maybe coorilate to other dance move
-    # RX: Looking left or right, positive to the left and negative to the right
-    # RY: Looking up or down, positive looking up and negative looking down
-    # RZ: Tilting left or right, positive tilting head left and negative tilting head right
-
-    return
-
-
-if __name__ == "__main__":
-    cap = cv2.VideoCapture(0)
-
+def dance_reader():
+    global head_x
+    global head_y
+    global head_z
+    global r_arm
+    global l_arm
+    cap = cv2.VideoCapture("http://172.20.10.10:4747/video")
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     frame_size = (width, height)
-
     while cap.isOpened():
         success, image = cap.read()
         if not success:
             print("Null.Frames")
             break
-
         h, w = image.shape[:2]
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         keypoints = pose.process(image)
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         lm = keypoints.pose_landmarks
         lmPose = mp_pose.PoseLandmark
-
         image = cv2.rectangle(image, (0,0), (w,h), (0,0,0), 600)
-
-        
         try:
             right_eye = (int(lm.landmark[lmPose.RIGHT_EYE].x*w)), (int(lm.landmark[lmPose.RIGHT_EYE].y*h))
             left_eye =  (int(lm.landmark[lmPose.LEFT_EYE].x*w)), (int(lm.landmark[lmPose.LEFT_EYE].y*h))
@@ -58,7 +72,6 @@ if __name__ == "__main__":
             mouth_x = int(((int(lm.landmark[lmPose.MOUTH_RIGHT].x*w))+(int(lm.landmark[lmPose.MOUTH_LEFT].x*w)))/2)
             right_ear = (int(lm.landmark[lmPose.RIGHT_EAR].x*w)), (int(lm.landmark[lmPose.RIGHT_EAR].y*h))
             left_ear = (int(lm.landmark[lmPose.LEFT_EAR].x*w)), (int(lm.landmark[lmPose.LEFT_EAR].y*h))
-
             image = cv2.line(image, right_eye, left_eye, (255, 0, 0), 2)
             image = cv2.line(image, left_eye, mouth_mid, (255, 0, 0), 2)
             image = cv2.line(image, mouth_mid, right_eye, (255, 0, 0), 2)
@@ -79,10 +92,11 @@ if __name__ == "__main__":
             eye_slope = (int(lm.landmark[lmPose.RIGHT_EYE].y*h) - int(lm.landmark[lmPose.LEFT_EYE].y*h)) / (int(lm.landmark[lmPose.RIGHT_EYE].x*w) - int(lm.landmark[lmPose.LEFT_EYE].x*w))
             ear_slope = (int(lm.landmark[lmPose.RIGHT_EAR].y*h) - int(lm.landmark[lmPose.LEFT_EAR].y*h)) / (int(lm.landmark[lmPose.RIGHT_EAR].x*w) - int(lm.landmark[lmPose.LEFT_EAR].x*w))
             rotate_z = round(((eye_slope + ear_slope) * rotate_y_calibrated), 3)
-            move_head_duckie(rotate_x,rotate_y,rotate_z)
+            head_x = rotate_x
+            head_y = rotate_y
+            head_z = rotate_z
         except:
             print("WARNING: NO HEAD?")
-        
         try:
             right_wrist_x = (int(lm.landmark[lmPose.RIGHT_WRIST].x*w))
             right_wrist_y = (int(lm.landmark[lmPose.RIGHT_WRIST].y*h))
@@ -92,7 +106,6 @@ if __name__ == "__main__":
             right_hip_y = (int(lm.landmark[lmPose.RIGHT_HIP].y*h))
             right_torso_length = m.sqrt(m.pow(right_shoulder_x-right_hip_x, 2) + m.pow(right_shoulder_y-right_hip_y,2))
             right_arm_length = m.sqrt(m.pow(right_shoulder_x-right_wrist_x, 2) + m.pow(right_shoulder_y-right_wrist_y,2))
-
             right_0_x = int(right_shoulder_x - (right_torso_length/3))
             right_0_y = int(right_shoulder_y + (right_torso_length/3))
             right_1_x = int(right_shoulder_x + (right_torso_length/3))
@@ -103,31 +116,28 @@ if __name__ == "__main__":
             right_3_y = int(right_shoulder_y - (right_torso_length/3))
             right_4_x = int(right_shoulder_x - (right_torso_length/2))
             right_4_y = int(right_shoulder_y - (right_torso_length/10))
-
             dt_r_0 = m.sqrt(m.pow(right_wrist_x - right_0_x, 2)+ m.pow(right_wrist_y - right_0_y, 2))
             dt_r_1 = m.sqrt(m.pow(right_wrist_x - right_1_x, 2)+ m.pow(right_wrist_y - right_1_y, 2))
             dt_r_2 = m.sqrt(m.pow(right_wrist_x - right_2_x, 2)+ m.pow(right_wrist_y - right_2_y, 2))
             dt_r_3 = m.sqrt(m.pow(right_wrist_x - right_3_x, 2)+ m.pow(right_wrist_y - right_3_y, 2))
             dt_r_4 = m.sqrt(m.pow(right_wrist_x - right_4_x, 2)+ m.pow(right_wrist_y - right_4_y, 2))
-            
             if (dt_r_0 <= dt_r_0 and dt_r_0 <= dt_r_1 and dt_r_0 <= dt_r_2 and dt_r_0 <= dt_r_3 and dt_r_0 <= dt_r_4):
                 image = cv2.line(image, (right_0_x,right_0_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
-                move_right_arm_duckie(230)
+                r_arm = (230)
             elif (dt_r_1 <= dt_r_0 and dt_r_1 <= dt_r_1 and dt_r_1 <= dt_r_2 and dt_r_1 <= dt_r_3 and dt_r_1 <= dt_r_4):
                 image = cv2.line(image, (right_1_x,right_1_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
-                move_right_arm_duckie(325)
+                r_arm = (325)
             elif (dt_r_2 <= dt_r_0 and dt_r_2 <= dt_r_1 and dt_r_2 <= dt_r_2 and dt_r_2 <= dt_r_3 and dt_r_2 <= dt_r_4):
                 image = cv2.line(image, (right_2_x,right_2_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
-                move_right_arm_duckie(30)
+                r_arm = (30)
             elif (dt_r_3 <= dt_r_0 and dt_r_3 <= dt_r_1 and dt_r_3 <= dt_r_2 and dt_r_3 <= dt_r_3 and dt_r_3 <= dt_r_4):
                 image = cv2.line(image, (right_3_x,right_3_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
-                move_right_arm_duckie(90)
+                r_arm = (90)
             else:
                 image = cv2.line(image, (right_4_x,right_4_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
-                move_right_arm_duckie(170)
+                r_arm = (170)
         except:
             print("WARNING: RIGHT ARM NOT VISIBLE")
-        
         try:
             left_wrist_x = (int(lm.landmark[lmPose.LEFT_WRIST].x*w))
             left_wrist_y = (int(lm.landmark[lmPose.LEFT_WRIST].y*h))
@@ -137,7 +147,6 @@ if __name__ == "__main__":
             left_hip_y = (int(lm.landmark[lmPose.LEFT_HIP].y*h))
             left_torso_length = m.sqrt(m.pow(left_shoulder_x-left_hip_x, 2) + m.pow(left_shoulder_y-left_hip_y,2))
             left_arm_length = m.sqrt(m.pow(left_shoulder_x-left_wrist_x, 2) + m.pow(left_shoulder_y-left_wrist_y,2))
-
             left_0_x = int(left_shoulder_x - (left_torso_length/3))
             left_0_y = int(left_shoulder_y + (left_torso_length/3))
             left_1_x = int(left_shoulder_x + (left_torso_length/3))
@@ -157,23 +166,22 @@ if __name__ == "__main__":
             
             if (dt_l_0 <= dt_l_0 and dt_l_0 <= dt_l_1 and dt_l_0 <= dt_l_2 and dt_l_0 <= dt_l_3 and dt_l_0 <= dt_l_4):
                 image = cv2.line(image, (left_0_x,left_0_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
-                move_left_arm_duckie(230)
+                l_arm = (230)
             elif (dt_l_1 <= dt_l_0 and dt_l_1 <= dt_l_1 and dt_l_1 <= dt_l_2 and dt_l_1 <= dt_l_3 and dt_l_1 <= dt_l_4):
                 image = cv2.line(image, (left_1_x,left_1_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
-                move_left_arm_duckie(325)
+                l_arm = (325)
             elif (dt_l_2 <= dt_l_0 and dt_l_2 <= dt_l_1 and dt_l_2 <= dt_l_2 and dt_l_2 <= dt_l_3 and dt_l_2 <= dt_l_4):
                 image = cv2.line(image, (left_2_x,left_2_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
-                move_left_arm_duckie(30)
+                l_arm = (30)
             elif (dt_l_3 <= dt_l_0 and dt_l_3 <= dt_l_1 and dt_l_3 <= dt_l_2 and dt_l_3 <= dt_l_3 and dt_l_3 <= dt_l_4):
                 image = cv2.line(image, (left_3_x,left_3_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
-                move_left_arm_duckie(90)
+                l_arm = (90)
             else:
                 image = cv2.line(image, (left_4_x,left_4_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
-                move_left_arm_duckie(170)
+                l_arm = (170)
         except:
             print("WARNING: LEFT ARM NOT VISIBLE")
 
-        
         ## Bthis some fruity ahh code sorry mb
         try:
             image = cv2.line(image, (right_shoulder_x,right_shoulder_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
@@ -188,5 +196,15 @@ if __name__ == "__main__":
         if cv2.waitKey(5) & 0xFF == ord('q'):
             break
 
-cap.release()
-cv2.destroyAllWindows()
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+if __name__ == "__main__":
+    t2 = threading.Thread(target=dance_reader, args=())
+    t1 = threading.Thread(target=server,args=())
+    t1.start()
+    t2.start()
+
+
+
