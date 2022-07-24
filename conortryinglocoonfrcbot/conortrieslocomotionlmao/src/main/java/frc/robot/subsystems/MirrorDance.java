@@ -1,6 +1,10 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import com.gargoylesoftware.htmlunit.*;
+import com.gargoylesoftware.htmlunit.html.*;
+import java.io.IOException;
+import java.util.List;
 
 public class MirrorDance extends SubsystemBase {
   public MirrorDance() 
@@ -50,9 +54,20 @@ public class MirrorDance extends SubsystemBase {
     }
 
 
-
     Movement.leftJaguar.setVoltage(left_voltage);
     Movement.rightJaguar.setVoltage(right_voltage);
 
   }
+  public static void GetMediapipe()
+    {
+        WebClient webClient = new WebClient(BrowserVersion.CHROME);
+        try {
+            HtmlPage page = webClient.getPage("https://foodnetwork.co.uk/italian-family-dinners/"); // set to pc's ip:8000
+            System.out.println(page.getBody());
+            webClient.close();
+         
+         } catch (IOException e) {
+            System.out.println("An error occurred: " + e);
+         }
+    }
 }
