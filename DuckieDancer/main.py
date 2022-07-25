@@ -8,6 +8,9 @@ import socketserver
 import threading
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
+from networktables import NetworkTables
+import sys
+import logging
 
 rotate_z_calibrated = 22
 rotate_x_calibrated = 0.1
@@ -22,15 +25,6 @@ l_arm = 0
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose()
 
-class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-        query_components = parse_qs(urlparse(self.path).query)
-        html = f"<html><head></head><body>{head_x},{head_y},{head_z},{r_arm},{l_arm}</body></html>"
-        self.wfile.write(bytes(html, "utf8"))
-        return
 
 def server():
     global head_x
@@ -38,10 +32,21 @@ def server():
     global head_z
     global r_arm
     global l_arm
-    handler_object = MyHttpRequestHandler
-    PORT = 8000
-    my_server = socketserver.TCPServer(("", PORT), handler_object)
-    my_server.serve_forever()
+    logging.basicConfig(level=logging.DEBUG)
+    ip = "10.81.22.2"
+
+    NetworkTables.initialize(server=ip)
+
+    sd = NetworkTables.getTable("SmartDashboard")
+
+    while True:
+        sd.putNumber("head_x", head_x)
+        sd.putNumber("head_y", head_y)
+        sd.putNumber("head_z", head_z)
+        sd.putNumber("r_arm", r_arm)
+        sd.putNumber("l_arm", l_arm)
+        time.sleep(0.01)
+            
 
 def dance_reader():
     global head_x
@@ -49,7 +54,7 @@ def dance_reader():
     global head_z
     global r_arm
     global l_arm
-    cap = cv2.VideoCapture("http://172.20.10.10:4747/video")
+    cap = cv2.VideoCapture("http:/10.81.22.218:4747/video")
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     frame_size = (width, height)

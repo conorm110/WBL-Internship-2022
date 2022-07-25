@@ -20,6 +20,7 @@ public class MirrorDance extends SubsystemBase {
 
   public static void FollowPlayer(LucyLimeLight lucy)
   {
+    GetMediapipe();
     lucy.check();
     double left_voltage = 0;
     double right_voltage = 0;
@@ -60,14 +61,6 @@ public class MirrorDance extends SubsystemBase {
   }
   public static void GetMediapipe()
     {
-        WebClient webClient = new WebClient(BrowserVersion.CHROME);
-        try {
-            HtmlPage page = webClient.getPage("https://foodnetwork.co.uk/italian-family-dinners/"); // set to pc's ip:8000
-            System.out.println(page.getBody());
-            webClient.close();
-         
-         } catch (IOException e) {
-            System.out.println("An error occurred: " + e);
-         }
+        
     }
 }
