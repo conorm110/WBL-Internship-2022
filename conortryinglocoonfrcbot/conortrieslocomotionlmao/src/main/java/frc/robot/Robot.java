@@ -70,7 +70,10 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
+    MirrorDance.UpdateMediapipe();
     MirrorDance.FollowPlayer(lucy);
+    Movement.moveArmRight(MirrorDance.r_arm);
+    Movement.moveArmLeft(MirrorDance.l_arm);
   }
 
   // These prolly wont ever be needed but im a code hoarder so dont delete them :) - conor

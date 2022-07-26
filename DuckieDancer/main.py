@@ -11,6 +11,7 @@ from urllib.parse import parse_qs
 from networktables import NetworkTables
 import sys
 import logging
+import math
 
 rotate_z_calibrated = 22
 rotate_x_calibrated = 0.1
@@ -43,7 +44,7 @@ def server():
         sd.putNumber("head_x", head_x)
         sd.putNumber("head_y", head_y)
         sd.putNumber("head_z", head_z)
-        sd.putNumber("r_arm", r_arm)
+        sd.putNumber("r_arm", 180)
         sd.putNumber("l_arm", l_arm)
         time.sleep(0.01)
             
@@ -69,7 +70,7 @@ def dance_reader():
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         lm = keypoints.pose_landmarks
         lmPose = mp_pose.PoseLandmark
-        image = cv2.rectangle(image, (0,0), (w,h), (0,0,0), 600)
+        ##image = cv2.rectangle(image, (0,0), (w,h), (0,0,0), 600)
         try:
             right_eye = (int(lm.landmark[lmPose.RIGHT_EYE].x*w)), (int(lm.landmark[lmPose.RIGHT_EYE].y*h))
             left_eye =  (int(lm.landmark[lmPose.LEFT_EYE].x*w)), (int(lm.landmark[lmPose.LEFT_EYE].y*h))
@@ -107,40 +108,42 @@ def dance_reader():
             right_wrist_y = (int(lm.landmark[lmPose.RIGHT_WRIST].y*h))
             right_shoulder_x = (int(lm.landmark[lmPose.RIGHT_SHOULDER].x*w))
             right_shoulder_y = (int(lm.landmark[lmPose.RIGHT_SHOULDER].y*h))
-            right_hip_x = (int(lm.landmark[lmPose.RIGHT_HIP].x*w))
-            right_hip_y = (int(lm.landmark[lmPose.RIGHT_HIP].y*h))
-            right_torso_length = m.sqrt(m.pow(right_shoulder_x-right_hip_x, 2) + m.pow(right_shoulder_y-right_hip_y,2))
-            right_arm_length = m.sqrt(m.pow(right_shoulder_x-right_wrist_x, 2) + m.pow(right_shoulder_y-right_wrist_y,2))
-            right_0_x = int(right_shoulder_x - (right_torso_length/3))
-            right_0_y = int(right_shoulder_y + (right_torso_length/3))
-            right_1_x = int(right_shoulder_x + (right_torso_length/3))
-            right_1_y = int(right_shoulder_y + (right_torso_length/3))
-            right_2_x = int(right_shoulder_x + (right_torso_length/2))
-            right_2_y = int(right_shoulder_y - (right_torso_length/10))
-            right_3_x = right_shoulder_x
-            right_3_y = int(right_shoulder_y - (right_torso_length/3))
-            right_4_x = int(right_shoulder_x - (right_torso_length/2))
-            right_4_y = int(right_shoulder_y - (right_torso_length/10))
-            dt_r_0 = m.sqrt(m.pow(right_wrist_x - right_0_x, 2)+ m.pow(right_wrist_y - right_0_y, 2))
-            dt_r_1 = m.sqrt(m.pow(right_wrist_x - right_1_x, 2)+ m.pow(right_wrist_y - right_1_y, 2))
-            dt_r_2 = m.sqrt(m.pow(right_wrist_x - right_2_x, 2)+ m.pow(right_wrist_y - right_2_y, 2))
-            dt_r_3 = m.sqrt(m.pow(right_wrist_x - right_3_x, 2)+ m.pow(right_wrist_y - right_3_y, 2))
-            dt_r_4 = m.sqrt(m.pow(right_wrist_x - right_4_x, 2)+ m.pow(right_wrist_y - right_4_y, 2))
-            if (dt_r_0 <= dt_r_0 and dt_r_0 <= dt_r_1 and dt_r_0 <= dt_r_2 and dt_r_0 <= dt_r_3 and dt_r_0 <= dt_r_4):
-                image = cv2.line(image, (right_0_x,right_0_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
-                r_arm = (230)
-            elif (dt_r_1 <= dt_r_0 and dt_r_1 <= dt_r_1 and dt_r_1 <= dt_r_2 and dt_r_1 <= dt_r_3 and dt_r_1 <= dt_r_4):
-                image = cv2.line(image, (right_1_x,right_1_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
-                r_arm = (325)
-            elif (dt_r_2 <= dt_r_0 and dt_r_2 <= dt_r_1 and dt_r_2 <= dt_r_2 and dt_r_2 <= dt_r_3 and dt_r_2 <= dt_r_4):
-                image = cv2.line(image, (right_2_x,right_2_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
-                r_arm = (30)
-            elif (dt_r_3 <= dt_r_0 and dt_r_3 <= dt_r_1 and dt_r_3 <= dt_r_2 and dt_r_3 <= dt_r_3 and dt_r_3 <= dt_r_4):
-                image = cv2.line(image, (right_3_x,right_3_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
-                r_arm = (90)
+            right_shoulder_wrist_distance_x = right_shoulder_x - right_wrist_x # negative towards the left
+            right_shoulder_wrist_distance_y = right_shoulder_y - right_wrist_y # negative going down
+            r_arm_speed = 3
+            if (right_shoulder_wrist_distance_y > 0):
+                if (abs(right_shoulder_wrist_distance_x) < 55):
+                    # target 90
+                    if (r_arm < 90):
+                        r_arm = r_arm + r_arm_speed
+                    elif (r_arm > 90):
+                        r_arm = r_arm - r_arm_speed
+                    else:
+                        r_arm = 90
+                elif (right_shoulder_wrist_distance_x < 0):
+                    # target 45
+                    if (r_arm < 45):
+                        r_arm = r_arm + r_arm_speed
+                    elif (r_arm > 45):
+                        r_arm = r_arm - r_arm_speed
+                    else:
+                        r_arm = 45
+                else:
+                    # target 135
+                    if (r_arm < 135):
+                        r_arm = r_arm + r_arm_speed
+                    elif (r_arm > 135):
+                        r_arm = r_arm - r_arm_speed
+                    else:
+                        r_arm = 135
             else:
-                image = cv2.line(image, (right_4_x,right_4_y), (right_shoulder_x, right_shoulder_y), (255, 0, 0), 4)
-                r_arm = (170)
+                if (r_arm < r_arm_speed or r_arm > (180 - r_arm_speed)):
+                    r_arm = r_arm
+                elif(r_arm < 90):
+                    r_arm = r_arm - r_arm_speed
+                else:
+                    r_arm = r_arm + r_arm_speed
+            
         except:
             print("WARNING: RIGHT ARM NOT VISIBLE")
         try:
@@ -148,42 +151,43 @@ def dance_reader():
             left_wrist_y = (int(lm.landmark[lmPose.LEFT_WRIST].y*h))
             left_shoulder_x = (int(lm.landmark[lmPose.LEFT_SHOULDER].x*w))
             left_shoulder_y = (int(lm.landmark[lmPose.LEFT_SHOULDER].y*h))
-            left_hip_x = (int(lm.landmark[lmPose.LEFT_HIP].x*w))
-            left_hip_y = (int(lm.landmark[lmPose.LEFT_HIP].y*h))
-            left_torso_length = m.sqrt(m.pow(left_shoulder_x-left_hip_x, 2) + m.pow(left_shoulder_y-left_hip_y,2))
-            left_arm_length = m.sqrt(m.pow(left_shoulder_x-left_wrist_x, 2) + m.pow(left_shoulder_y-left_wrist_y,2))
-            left_0_x = int(left_shoulder_x - (left_torso_length/3))
-            left_0_y = int(left_shoulder_y + (left_torso_length/3))
-            left_1_x = int(left_shoulder_x + (left_torso_length/3))
-            left_1_y = int(left_shoulder_y + (left_torso_length/3))
-            left_2_x = int(left_shoulder_x + (left_torso_length/2))
-            left_2_y = int(left_shoulder_y - (left_torso_length/10))
-            left_3_x = left_shoulder_x
-            left_3_y = int(left_shoulder_y - (left_torso_length/3))
-            left_4_x = int(left_shoulder_x - (left_torso_length/2))
-            left_4_y = int(left_shoulder_y - (left_torso_length/10))
-
-            dt_l_0 = m.sqrt(m.pow(left_wrist_x - left_0_x, 2)+ m.pow(left_wrist_y - left_0_y, 2))
-            dt_l_1 = m.sqrt(m.pow(left_wrist_x - left_1_x, 2)+ m.pow(left_wrist_y - left_1_y, 2))
-            dt_l_2 = m.sqrt(m.pow(left_wrist_x - left_2_x, 2)+ m.pow(left_wrist_y - left_2_y, 2))
-            dt_l_3 = m.sqrt(m.pow(left_wrist_x - left_3_x, 2)+ m.pow(left_wrist_y - left_3_y, 2))
-            dt_l_4 = m.sqrt(m.pow(left_wrist_x - left_4_x, 2)+ m.pow(left_wrist_y - left_4_y, 2))
-            
-            if (dt_l_0 <= dt_l_0 and dt_l_0 <= dt_l_1 and dt_l_0 <= dt_l_2 and dt_l_0 <= dt_l_3 and dt_l_0 <= dt_l_4):
-                image = cv2.line(image, (left_0_x,left_0_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
-                l_arm = (230)
-            elif (dt_l_1 <= dt_l_0 and dt_l_1 <= dt_l_1 and dt_l_1 <= dt_l_2 and dt_l_1 <= dt_l_3 and dt_l_1 <= dt_l_4):
-                image = cv2.line(image, (left_1_x,left_1_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
-                l_arm = (325)
-            elif (dt_l_2 <= dt_l_0 and dt_l_2 <= dt_l_1 and dt_l_2 <= dt_l_2 and dt_l_2 <= dt_l_3 and dt_l_2 <= dt_l_4):
-                image = cv2.line(image, (left_2_x,left_2_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
-                l_arm = (30)
-            elif (dt_l_3 <= dt_l_0 and dt_l_3 <= dt_l_1 and dt_l_3 <= dt_l_2 and dt_l_3 <= dt_l_3 and dt_l_3 <= dt_l_4):
-                image = cv2.line(image, (left_3_x,left_3_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
-                l_arm = (90)
+            left_shoulder_wrist_distance_x = left_shoulder_x - left_wrist_x # negative towards the left
+            left_shoulder_wrist_distance_y = left_shoulder_y - left_wrist_y # negative going down
+            l_arm_speed = 3
+            if (left_shoulder_wrist_distance_y > 0):
+                if (abs(left_shoulder_wrist_distance_x) < 55):
+                    # target 90
+                    if (l_arm < 90):
+                        l_arm = l_arm + l_arm_speed
+                    elif (l_arm > 90):
+                        l_arm = l_arm - l_arm_speed
+                    else:
+                        r_arm = 90
+                elif (left_shoulder_wrist_distance_x < 0):
+                    # target 45
+                    if (l_arm < 45):
+                       l_arm = l_arm + l_arm_speed
+                    elif (l_arm > 45):
+                        l_arm = l_arm - l_arm_speed
+                    else:
+                        l_arm = 45
+                else:
+                    # target 135
+                    if (l_arm < 135):
+                        l_arm = l_arm + l_arm_speed
+                    elif (l_arm > 135):
+                        l_arm = l_arm - l_arm_speed
+                    else:
+                        l_arm = 135
             else:
-                image = cv2.line(image, (left_4_x,left_4_y), (left_shoulder_x, left_shoulder_y), (255, 0, 0), 4)
-                l_arm = (170)
+                if (l_arm < l_arm_speed or l_arm > (180 - l_arm_speed)):
+                    l_arm = l_arm
+                elif(l_arm < 90):
+                    l_arm = l_arm - l_arm_speed
+                else:
+                    l_arm = l_arm + l_arm_speed
+            
+            print(l_arm)
         except:
             print("WARNING: LEFT ARM NOT VISIBLE")
 

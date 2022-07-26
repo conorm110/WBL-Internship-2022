@@ -1,5 +1,9 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.html.*;
@@ -12,6 +16,12 @@ public class MirrorDance extends SubsystemBase {
     
   }
 
+  public static NetworkTable table2 = NetworkTableInstance.getDefault().getTable("SmartDashboard");
+  public static double head_x = 0.0;
+  public static double head_y = 0.0;
+  public static double head_z = 0.0;
+  public static double l_arm = 0.0;
+  public static double r_arm = 0.0;
   private static double target_y_angle = 3;
   private static double y_angle_tolerance = 2;
   private static double target_x_angle = -12; // needs to be changed a bit, needed bc limelight isnt centered
@@ -20,7 +30,6 @@ public class MirrorDance extends SubsystemBase {
 
   public static void FollowPlayer(LucyLimeLight lucy)
   {
-    GetMediapipe();
     lucy.check();
     double left_voltage = 0;
     double right_voltage = 0;
@@ -59,8 +68,22 @@ public class MirrorDance extends SubsystemBase {
     Movement.rightJaguar.setVoltage(right_voltage);
 
   }
-  public static void GetMediapipe()
+  public static void UpdateMediapipe()
     {
-        
+        NetworkTableEntry head_x_mp = table2.getEntry("head_x");
+        NetworkTableEntry head_y_mp = table2.getEntry("head_y");
+        NetworkTableEntry head_z_mp = table2.getEntry("head_z");
+        NetworkTableEntry l_arm_mp = table2.getEntry("l_arm");
+        NetworkTableEntry r_arm_mp = table2.getEntry("r_arm");
+        head_x = head_x_mp.getDouble(head_x);
+        head_y = head_y_mp.getDouble(head_y);
+        head_z = head_z_mp.getDouble(head_z);
+        l_arm = l_arm_mp.getDouble(l_arm);
+        r_arm = r_arm_mp.getDouble(r_arm);
+        SmartDashboard.putNumber("head_x", head_x);
+        SmartDashboard.putNumber("head_y", head_y);
+        SmartDashboard.putNumber("head_z", head_z);
+        SmartDashboard.putNumber("l_arm", l_arm);
+        SmartDashboard.putNumber("r_arm", r_arm);
     }
 }
