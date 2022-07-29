@@ -28,67 +28,42 @@ public class MirrorDance extends SubsystemBase {
   private static double x_angle_tolerance = 5;
   private static double speed = 4.20;
 
-  private static double old_lv = 0.0;
-  private static double old_rv = 0.0;
   public static void FollowPlayer(LucyLimeLight lucy)
   {
     lucy.check();
     double left_voltage = 0;
     double right_voltage = 0;
-    if (lucy.lucy_angles[1] == 0.0){
-        if (old_lv > 0){
-            left_voltage = old_lv - 0.2;
-        }
-        else if (old_lv < 0){
-            left_voltage = old_lv + 0.2;
-        }
-        if (old_rv > 0){
-            right_voltage = old_rv - 0.2;
-        }
-        else if (old_lv < 0){
-            right_voltage = old_rv + 0.2;
-        }
+    if ((-1*y_angle_tolerance) < lucy.lucy_angles[1] && y_angle_tolerance > lucy.lucy_angles[1])
+    {
+        // in good y position
     }
-    else if (lucy.lucy_angles[1] < -15){
-        // we need to move fast if your too far away because it looses detection very fast, ~20d depending on lighting
-        left_voltage = 4;
-        right_voltage = -4;
+    else if (lucy.lucy_angles[1] < target_y_angle)
+    {
+        left_voltage = speed;
+        right_voltage = -1 * speed;
     }
-    else if (lucy.lucy_angles[1] > -11){
-        left_voltage = -3;
-        right_voltage = 3;
-    } else {
-        left_voltage = 0;
-        right_voltage = 0;
+    else 
+    {
+        left_voltage = -1 * speed;
+        right_voltage = speed;
     }
 
-    // if we are due right, add -2 to both
-    // 3-6
-    // if less than 3-6, turn right
-    // otherwise turn left
-    if (lucy.lucy_angles[0] == 0.0) {
-
+    if ((-1*x_angle_tolerance) < lucy.lucy_angles[0] && x_angle_tolerance > lucy.lucy_angles[0])
+    {
+        // in good x position
     }
-    else if (lucy.lucy_angles[0] < -10) {
-        left_voltage -= 2.5;
-        right_voltage -= 2.5;
+    else if (lucy.lucy_angles[0] < target_x_angle)
+    {
+        left_voltage -= 3;
+        right_voltage -= 3;
     }
-    else if (lucy.lucy_angles[0] > 16) {
-        left_voltage +=2.5;
-        right_voltage +=2.5;
-    }
-    else if (lucy.lucy_angles[0] < 2) {
-        left_voltage -= 1;
-        right_voltage -= 1;
-    }
-    else if (lucy.lucy_angles[0] > 6) {
-        left_voltage +=1;
-        right_voltage +=1;
+    else 
+    {
+        left_voltage += 3;
+        right_voltage += 3;
     }
 
 
-    old_lv = left_voltage;
-    old_rv = right_voltage;
     Movement.leftJaguar.setVoltage(left_voltage);
     Movement.rightJaguar.setVoltage(right_voltage);
 

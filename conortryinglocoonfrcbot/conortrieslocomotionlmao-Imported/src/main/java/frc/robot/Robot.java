@@ -60,8 +60,6 @@ public class Robot extends TimedRobot {
     AutoDance.AutoLoop();
   }
 
-  public static boolean teleop_ready = true;
-  public static int lucy_blind_counter = 0;
   @Override
   public void teleopInit() {
     Movement.stop();
@@ -72,36 +70,12 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    if (teleop_ready) {
-      MirrorDance.UpdateMediapipe();
-      MirrorDance.FollowPlayer(lucy);
-      Movement.moveArmRight(MirrorDance.r_arm);
-      Movement.moveArmLeft(MirrorDance.l_arm);
-      Movement.moveHeadX(MirrorDance.head_x);
-      Movement.moveHeadY(MirrorDance.head_z);
-      if (lucy.lucy_angles[0] == 0.0 ||lucy.lucy_angles[1] == 0.0 )
-      {
-        lucy_blind_counter ++;
-      }
-      else {
-        lucy_blind_counter-= 5;
-        if (lucy_blind_counter < 0){
-          lucy_blind_counter = 0;
-        }
-      }
-      if (lucy_blind_counter > 70) {
-        teleop_ready = true;
-      }
-    }
-    else {
-      Movement.leftJaguar.setVoltage(4);
-      Movement.rightJaguar.setVoltage(4);
-      lucy.check();
-      if (lucy.lucy_angles[0] != 0.0 ||lucy.lucy_angles[1] != 0.0 )
-      {
-        teleop_ready = true;
-      }
-    }
+    MirrorDance.UpdateMediapipe();
+    MirrorDance.FollowPlayer(lucy);
+    Movement.moveArmRight(MirrorDance.r_arm);
+    Movement.moveArmLeft(MirrorDance.l_arm);
+    Movement.moveHeadX(MirrorDance.head_x);
+    Movement.moveHeadY(MirrorDance.head_z);
   }
 
   // These prolly wont ever be needed but im a code hoarder so dont delete them :) - conor

@@ -44,7 +44,7 @@ def server():
         sd.putNumber("head_x", head_x)
         sd.putNumber("head_y", head_y)
         sd.putNumber("head_z", head_z)
-        sd.putNumber("r_arm", 180)
+        sd.putNumber("r_arm", r_arm)
         sd.putNumber("l_arm", l_arm)
         time.sleep(0.01)
             
@@ -55,7 +55,7 @@ def dance_reader():
     global head_z
     global r_arm
     global l_arm
-    cap = cv2.VideoCapture("http:/10.81.22.218:4747/video")
+    cap = cv2.VideoCapture(1) #cap = cv2.VideoCapture("http:/10.81.22.218:4747/video")
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     frame_size = (width, height)
@@ -98,9 +98,40 @@ def dance_reader():
             eye_slope = (int(lm.landmark[lmPose.RIGHT_EYE].y*h) - int(lm.landmark[lmPose.LEFT_EYE].y*h)) / (int(lm.landmark[lmPose.RIGHT_EYE].x*w) - int(lm.landmark[lmPose.LEFT_EYE].x*w))
             ear_slope = (int(lm.landmark[lmPose.RIGHT_EAR].y*h) - int(lm.landmark[lmPose.LEFT_EAR].y*h)) / (int(lm.landmark[lmPose.RIGHT_EAR].x*w) - int(lm.landmark[lmPose.LEFT_EAR].x*w))
             rotate_z = round(((eye_slope + ear_slope) * rotate_y_calibrated), 3)
-            head_x = rotate_x
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            org = (50,50)
+            fontScale = 1
+            color = (255,0,0)
+            thickness = 2
+
+            head_x_tolerance = 4
+            head_x_speed = 10
+
+            if (rotate_x < (head_x_tolerance * -1)-4):
+                if (head_x > 160):
+                    head_x = head_x - head_x_speed
+                elif (head_x < 160):
+                    head_x = head_x + head_x_speed
+            elif (rotate_x > head_x_tolerance ):
+                if (head_x > 20):
+                    head_x = head_x - head_x_speed
+                elif (head_x < 20):
+                    head_x = head_x + head_x_speed
+            else:
+                if (head_x > 90):
+                    head_x = head_x - head_x_speed
+                elif (head_x < 90):
+                    head_x = head_x + head_x_speed
+            
             head_y = rotate_y
-            head_z = rotate_z
+            rotate_z = rotate_z * 2
+            rotate_z = rotate_z + 90
+            if (rotate_z > 180):
+                head_z = 180
+            elif (rotate_z < 0):
+                head_z = 0
+            else:
+                head_z = rotate_z
         except:
             print("WARNING: NO HEAD?")
         try:
@@ -110,9 +141,9 @@ def dance_reader():
             right_shoulder_y = (int(lm.landmark[lmPose.RIGHT_SHOULDER].y*h))
             right_shoulder_wrist_distance_x = right_shoulder_x - right_wrist_x # negative towards the left
             right_shoulder_wrist_distance_y = right_shoulder_y - right_wrist_y # negative going down
-            r_arm_speed = 3
+            r_arm_speed = 10
             if (right_shoulder_wrist_distance_y > 0):
-                if (abs(right_shoulder_wrist_distance_x) < 55):
+                if (abs(right_shoulder_wrist_distance_x) < 70):
                     # target 90
                     if (r_arm < 90):
                         r_arm = r_arm + r_arm_speed
@@ -153,16 +184,16 @@ def dance_reader():
             left_shoulder_y = (int(lm.landmark[lmPose.LEFT_SHOULDER].y*h))
             left_shoulder_wrist_distance_x = left_shoulder_x - left_wrist_x # negative towards the left
             left_shoulder_wrist_distance_y = left_shoulder_y - left_wrist_y # negative going down
-            l_arm_speed = 3
+            l_arm_speed = 10
             if (left_shoulder_wrist_distance_y > 0):
-                if (abs(left_shoulder_wrist_distance_x) < 55):
+                if (abs(left_shoulder_wrist_distance_x) < 70):
                     # target 90
                     if (l_arm < 90):
                         l_arm = l_arm + l_arm_speed
                     elif (l_arm > 90):
                         l_arm = l_arm - l_arm_speed
                     else:
-                        r_arm = 90
+                        l_arm = 90
                 elif (left_shoulder_wrist_distance_x < 0):
                     # target 45
                     if (l_arm < 45):
@@ -187,7 +218,6 @@ def dance_reader():
                 else:
                     l_arm = l_arm + l_arm_speed
             
-            print(l_arm)
         except:
             print("WARNING: LEFT ARM NOT VISIBLE")
 
